@@ -19,9 +19,6 @@
 [image10.2]: ./images/out_2.gif "Output"
 [image10.3]: ./images/out_3.gif "Output"
 
-[video1]: ./project_output.mp4 "Video"
-
-
 # Advanced Lane Finding Project
 
 ![alt text][image0]
@@ -54,8 +51,11 @@ I start by preparing "object points", which will be the (x, y, z) coordinates of
 I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result:
 
 __before__
+
 ![alt text][image1]
+
 __after__
+
 ![alt text][image2]
 
 ---
@@ -67,8 +67,11 @@ __after__
 Before we start detecting anything we need to correct camera distortion. So applying coefficients from calibration is a first step.  
 
 __before__
+
 ![alt text][image3]
+
 __after__
+
 ![alt text][image4]
 
 #### 2. Blur
@@ -94,6 +97,7 @@ Here's an example of successfully threshold input image.
 Next step is to perform a perspective transformation in order to have get better view on the street.
 
 __"bird-eye" perspective__
+
 ![alt text][image6]
 
 If you are interested how I did it have a look at file
@@ -149,12 +153,15 @@ How I am sure that my polynomial are correct?
 Best is to check if they don't break the rules. Since the videos has been captured in US then captured highways must follow radius of curvature restrictions in [US.](http://onlinemanuals.txdot.gov/txdotmanuals/rdw/horizontal_alignment.htm#BGBHGEGC)
 
 Here is the equation for the radius of the curvature:
+
 ![alt text][image9.1]
 
 Since I fit second order polynomial to the found pixels it is easy to compute its first and second derivative:
+
 ![alt text][image9.2]
 
 When applied to radius of the curvature equation:
+
 ![alt text][image9.3]
 
 Code for it is quite easy and can be found in `LaneStatistics`
@@ -164,6 +171,7 @@ Code for it is quite easy and can be found in `LaneStatistics`
 Additional statistic we can compute is how off from the centre of the road is the car. So after translating to real world meters from pixel space we just take absolute difference of left and right lane positions at the bottom of the screen.
 
 Result:
+
 ![alt text][image9.4]
 
 ---
@@ -200,8 +208,6 @@ def __smooth_fits__(self, new_detection):
 
 #### 3. Full video
 Here's a [link to full video result](https://github.com/d3r0n/advanced-lane-lines/blob/master/project_output.mp4)
-
-![alt text][video1]
 
 ---
 
