@@ -4,9 +4,17 @@ import numpy as np
 import cv2
 import os
 
+class LaneDetection:
+    def __init__(self, fit, detected_x, detected_y):
+        self.fit = fit
+        self.detected_x = detected_x
+        self.detected_y = detected_y
+
+    def trustful(self, min_px_for_success = 50):
+        return len(self.detected_x) < min_px_for_success
 
 class HistogramSearch:
-    def __init__(self, window_width = 200, window_height = 80, min_pixels_to_recenter=50, visualisation = None):
+    def __init__(self, window_width = 180, window_height = 80, min_pixels_to_recenter=60, visualisation = None):
         self.margin = np.int(window_width / 2)
         self.window_height = window_height
         self.min_pixels_to_recenter = min_pixels_to_recenter
@@ -17,9 +25,10 @@ class HistogramSearch:
 
     def __find_start_points__(self, img):
         histogram = self.pixel_histogram(img)
-        midpoint = np.int(histogram.shape[0]/2)
-        left_x_start = np.argmax(histogram[:midpoint])
-        right_x_start = np.argmax(histogram[midpoint:]) + midpoint
+        left_end = np.int(histogram.shape[0])
+        right_start = np.int(histogram.shape[0]/2)
+        left_x_start = np.argmax(histogram[:left_end])
+        right_x_start = np.argmax(histogram[right_start:]) + right_start
         return (left_x_start, right_x_start)
 
     def __find_pixel_indices_in_window__(self, x_current , y_current, nonzerox, nonzeroy):
@@ -83,11 +92,17 @@ class HistogramSearch:
             self.visualisation[righty,rightx] = [0, 0, 255]
 
         # Fit a second order polynomial to each
-        left_fit = np.polyfit(lefty, leftx, 2)
-        right_fit = np.polyfit(righty, rightx, 2)
+        if len(leftx) > 0:
+            left_fit = np.polyfit(lefty, leftx, 2)
+            left_detection = LaneDetection(left_fit, leftx, lefty)
+        else:
+            left_detection = None
 
-        left_detection = LaneDetection(img, left_fit, leftx, lefty)
-        right_detection = LaneDetection(img, right_fit, rightx, righty)
+        if len(rightx) > 0:
+            right_fit = np.polyfit(righty, rightx, 2)
+            right_detection = LaneDetection(right_fit, rightx, righty)
+        else:
+            right_detection = None
 
         return (left_detection, right_detection)
 
@@ -99,11 +114,11 @@ class HistogramSearch:
         left_fit, right_fit = left_detection.fit, right_detection.fit
 
         # Generate x and y values for plotting
-        ploty = np.linspace(0, img.shape[0]-1, img.shape[0] )
-        left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-        right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+        arguments_y = np.linspace(0, img.shape[0]-1, img.shape[0] )
+        left_values_x = left_fit[0]*arguments_y**2 + left_fit[1]*arguments_y + left_fit[2]
+        right_values_x = right_fit[0]*arguments_y**2 + right_fit[1]*arguments_y + right_fit[2]
 
-        return (self.visualisation, left_fitx, right_fitx, ploty)
+        return (self.visualisation, left_values_x, right_values_x, arguments_y)
 
 
 class ConvolutionSearch:
